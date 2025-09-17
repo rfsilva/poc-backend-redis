@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Cache com Spring Boot - Documentação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .note {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #ffffcc;
+            border-left: 6px solid #ffeb3b;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Redis Cache com Spring Boot - Guia Prático</h1>
+    
+    <h2>Introdução</h2>
+    <p>
+        Este documento explica como o Redis é utilizado como solução de cache na nossa aplicação Spring Boot.
+        O Redis (Remote Dictionary Server) é um armazenamento de estrutura de dados em memória, usado como banco de dados,
+        cache e message broker.
+    </p>
+    
+    <h2>Por que usar Redis para cache?</h2>
+    <ul>
+        <li><strong>Performance:</strong> O Redis armazena dados em memória, proporcionando tempos de resposta extremamente rápidos.</li>
+        <li><strong>Persistência:</strong> Apesar de ser um banco em memória, o Redis oferece opções de persistência.</li>
+        <li><strong>Estruturas de dados versáteis:</strong> Suporta strings, hashes, listas, conjuntos e muito mais.</li>
+        <li><strong>Expiração automática:</strong> Permite definir TTL (Time-To-Live) para entradas de cache.</li>
+        <li><strong>Escalabilidade:</strong> Pode ser facilmente escalado horizontalmente.</li>
+    </ul>
+    
+    <h2>Configuração do Redis no Spring Boot</h2>
+    
+    <h3>1. Dependências</h3>
+    <p>Primeiro, adicionamos a dependência do Spring Data Redis no arquivo pom.xml:</p>
+    <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+    
+    <h3>2. Configuração do Redis</h3>
+    <p>A classe <code>RedisConfig</code> configura o Redis como provedor de cache:</p>
+    <pre><code>@Configuration
+@EnableCaching
+public class RedisConfig {
+
+    @Value("${spring.redis.host:localhost}")
+    private String redisHost;
+
+    @Value("${spring.redis.port:6379}")
+    private int redisPort;
+
+    @Value("${spring.cache.redis.time-to-live:3600}")
+    private long timeToLive;
+
+    @Bean
+    public LettuceConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration(redisHost, redisPort);
+        return new LettuceConnectionFactory(configuration);
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return template;
+    }
+
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(timeToLive))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                .disableCachingNullValues();
+
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(config)
+                .build();
+    }
+}</code></pre>
+    
+    <h3>3. Propriedades de Configuração</h3>
+    <p>No arquivo <code>application.properties</code>, configuramos o Redis:</p>
+    <pre><code># Redis Configuration
+spring.redis.host=localhost
+spring.redis.port=6379
+spring.cache.type=redis
+spring.cache.redis.time-to-live=3600000
+spring.cache.redis.cache-null-values=false</code></pre>
+    
+    <h2>Implementação do Cache</h2>
+    
+    <h3>Anotações de Cache</h3>
+    <p>O Spring fornece várias anotações para gerenciar o cache:</p>
+    
+    <table>
+        <tr>
+            <th>Anotação</th>
+            <th>Descrição</th>
+            <th>Uso na Aplicação</th>
+        </tr>
+        <tr>
+            <td><code>@Cacheable</code></td>
+            <td>Armazena o resultado do método em cache</td>
+            <td>Usado em <code>findById</code> para evitar consultas repetidas ao banco</td>
+        </tr>
+        <tr>
+            <td><code>@CachePut</code></td>
+            <td>Atualiza o cache com o resultado do método</td>
+            <td>Usado em <code>update</code> para manter o cache atualizado</td>
+        </tr>
+        <tr>
+            <td><code>@CacheEvict</code></td>
+            <td>Remove entradas do cache</td>
+            <td>Usado em <code>delete</code> para remover entradas obsoletas</td>
+        </tr>
+        <tr>
+            <td><code>@Caching</code></td>
+            <td>Combina múltiplas operações de cache</td>
+            <td>Usado para operações complexas que afetam múltiplos caches</td>
+        </tr>
+    </table>
+    
+    <h3>Exemplo de Implementação</h3>
+    <p>Veja como implementamos o cache no <code>PersonService</code>:</p>
+    
+    <h4>Busca por ID com Cache</h4>
+    <pre><code>@Cacheable(value = "personCache", key = "#id", unless = "#result == null")
+public PersonDTO findById(Long id) {
+    log.info("Fetching person with id {} from database", id);
+    Person person = personRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Person not found with id: " + id));
+    return convertToDTO(person);
+}</code></pre>
+    
+    <p class="note">
+        <strong>Nota:</strong> A anotação <code>@Cacheable</code> armazena o resultado em cache. Na próxima chamada com o mesmo ID,
+        o método não será executado e o resultado será recuperado diretamente do cache.
+    </p>
+    
+    <h4>Atualização com Cache</h4>
+    <pre><code>@CachePut(value = "personCache", key = "#id")
+public PersonDTO update(Long id, PersonDTO personDTO) {
+    log.info("Updating person with id: {}", id);
+    Person existingPerson = personRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Person not found with id: " + id));
+    
+    // Atualiza os campos
+    existingPerson.setName(personDTO.getName());
+    existingPerson.setBirthDate(personDTO.getBirthDate());
+    existingPerson.setEmail(personDTO.getEmail());
+    existingPerson.setAddress(personDTO.getAddress());
+    existingPerson.setPhoneNumber(personDTO.getPhoneNumber());
+    
+    Person updatedPerson = personRepository.save(existingPerson);
+    return convertToDTO(updatedPerson);
+}</code></pre>
+    
+    <p class="note">
+        <strong>Nota:</strong> A anotação <code>@CachePut</code> executa o método e atualiza o cache com o resultado.
+        Isso garante que o cache esteja sempre sincronizado com o banco de dados.
+    </p>
+    
+    <h4>Remoção do Cache</h4>
+    <pre><code>@Caching(evict = {
+    @CacheEvict(value = "personCache", key = "#id"),
+    @CacheEvict(value = "allPersonsCache", allEntries = true)
+})
+public void delete(Long id) {
+    log.info("Deleting person with id: {}", id);
+    Person person = personRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Person not found with id: " + id));
+    personRepository.delete(person);
+}</code></pre>
+    
+    <p class="note">
+        <strong>Nota:</strong> A anotação <code>@CacheEvict</code> remove entradas do cache. Aqui, removemos a entrada específica
+        e também limpamos qualquer cache de lista que possa conter a pessoa excluída.
+    </p>
+    
+    <h2>Melhores Práticas para Uso do Redis</h2>
+    
+    <h3>1. Escolha Cuidadosa do que Cachear</h3>
+    <p>
+        Nem todos os dados devem ser cacheados. Considere:
+    </p>
+    <ul>
+        <li>Frequência de acesso aos dados</li>
+        <li>Custo computacional para obter os dados</li>
+        <li>Frequência de alteração dos dados</li>
+        <li>Tamanho dos dados</li>
+    </ul>
+    
+    <h3>2. Defina TTL (Time-To-Live) Apropriado</h3>
+    <p>
+        O TTL deve ser definido com base na volatilidade dos dados. Dados que mudam frequentemente devem ter TTL menor.
+        Em nossa aplicação, definimos um TTL padrão de 3600 segundos (1 hora).
+    </p>
+    
+    <h3>3. Use Chaves de Cache Eficientes</h3>
+    <p>
+        As chaves de cache devem ser:
+    </p>
+    <ul>
+        <li>Únicas e específicas</li>
+        <li>Curtas, mas descritivas</li>
+        <li>Estruturadas de forma consistente</li>
+    </ul>
+    
+    <h3>4. Invalidação de Cache</h3>
+    <p>
+        Mantenha o cache sincronizado com o banco de dados:
+    </p>
+    <ul>
+        <li>Use <code>@CachePut</code> para atualizar o cache após modificações</li>
+        <li>Use <code>@CacheEvict</code> para remover entradas obsoletas</li>
+        <li>Considere a invalidação em cascata quando necessário</li>
+    </ul>
+    
+    <h3>5. Monitoramento</h3>
+    <p>
+        Monitore o uso do cache:
+    </p>
+    <ul>
+        <li>Taxa de acertos (hit rate)</li>
+        <li>Uso de memória</li>
+        <li>Tempo de resposta</li>
+    </ul>
+    
+    <h3>6. Serialização Eficiente</h3>
+    <p>
+        Escolha serializadores eficientes para minimizar o tamanho dos dados e o tempo de serialização/desserialização.
+        Em nossa aplicação, usamos <code>GenericJackson2JsonRedisSerializer</code> para valores e <code>StringRedisSerializer</code> para chaves.
+    </p>
+    
+    <h2>Considerações sobre SOLID e Clean Code</h2>
+    
+    <h3>Princípio da Responsabilidade Única (SRP)</h3>
+    <p>
+        Nossa implementação separa claramente as responsabilidades:
+    </p>
+    <ul>
+        <li>A configuração do Redis está isolada em <code>RedisConfig</code></li>
+        <li>A lógica de negócios está no <code>PersonService</code></li>
+        <li>O acesso aos dados está no <code>PersonRepository</code></li>
+    </ul>
+    
+    <h3>Princípio Aberto/Fechado (OCP)</h3>
+    <p>
+        A implementação do cache é extensível:
+    </p>
+    <ul>
+        <li>Podemos adicionar novos caches sem modificar o código existente</li>
+        <li>A configuração do cache é parametrizada via propriedades</li>
+    </ul>
+    
+    <h3>Princípio da Inversão de Dependência (DIP)</h3>
+    <p>
+        Dependemos de abstrações, não de implementações concretas:
+    </p>
+    <ul>
+        <li>Usamos interfaces como <code>CacheManager</code> e <code>RedisConnectionFactory</code></li>
+        <li>A injeção de dependência é usada para fornecer implementações</li>
+    </ul>
+    
+    <h3>Clean Code</h3>
+    <p>
+        Seguimos práticas de código limpo:
+    </p>
+    <ul>
+        <li>Nomes descritivos para métodos e variáveis</li>
+        <li>Comentários explicativos onde necessário</li>
+        <li>Métodos pequenos com responsabilidade única</li>
+        <li>Uso de lombok para reduzir boilerplate</li>
+        <li>Logging adequado para facilitar a depuração</li>
+    </ul>
+    
+    <h2>Conclusão</h2>
+    <p>
+        O Redis é uma excelente solução de cache para aplicações Spring Boot, oferecendo alta performance e flexibilidade.
+        Quando implementado seguindo as melhores práticas, pode melhorar significativamente o desempenho da aplicação,
+        reduzindo a carga no banco de dados e melhorando os tempos de resposta.
+    </p>
+    
+    <p class="warning">
+        <strong>Lembre-se:</strong> O cache é uma otimização, não uma solução para problemas de design. Certifique-se de que
+        sua aplicação funciona corretamente sem cache antes de implementá-lo.
+    </p>
+</body>
+</html>
