@@ -2,6 +2,7 @@ package br.com.rodrigo.poc.cache.service;
 
 import br.com.rodrigo.poc.cache.exception.ResourceNotFoundException;
 import br.com.rodrigo.poc.cache.model.Person;
+import br.com.rodrigo.poc.cache.model.dto.PageResponse;
 import br.com.rodrigo.poc.cache.model.dto.PersonDTO;
 import br.com.rodrigo.poc.cache.repository.PersonRepository;
 import br.com.rodrigo.poc.cache.util.Constants;
@@ -11,11 +12,16 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +51,40 @@ public class PersonService {
     }
     
     /**
+     * Busca todas as pessoas com paginação
+     * 
+     * @param page Número da página (começando em 0)
+     * @param size Tamanho da página
+     * @param sortBy Campo para ordenação
+     * @param direction Direção da ordenação (ASC ou DESC)
+     * @return Resposta paginada com DTOs de pessoas
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<PersonDTO> findAllPaged(int page, int size, String sortBy, String direction) {
+        log.info("Fetching persons page {} with size {}", page, size);
+        
+        Sort sort = direction.equalsIgnoreCase("DESC") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Person> personPage = personRepository.findAll(pageable);
+        
+        List<PersonDTO> personDTOs = personPage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        
+        return PageResponse.<PersonDTO>builder()
+                .content(personDTOs)
+                .pageNumber(personPage.getNumber())
+                .pageSize(personPage.getSize())
+                .totalElements(personPage.getTotalElements())
+                .totalPages(personPage.getTotalPages())
+                .last(personPage.isLast())
+                .build();
+    }
+    
+    /**
      * Busca pessoa por ID
      * Utiliza cache para evitar consultas repetidas ao banco
      * 
@@ -54,7 +94,7 @@ public class PersonService {
      */
     @Transactional(readOnly = true)
     @Cacheable(value = Constants.Cache.PERSON_CACHE, key = "#id", unless = "#result == null")
-    public PersonDTO findById(Long id) {
+    public PersonDTO findById(UUID id) {
         log.info("Fetching person with id {} from database", id);
         Person person = personRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + id));
@@ -74,6 +114,41 @@ public class PersonService {
         return personRepository.findByNameContainingIgnoreCase(name).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Busca pessoas por nome com paginação
+     * 
+     * @param name Nome ou parte do nome para busca
+     * @param page Número da página (começando em 0)
+     * @param size Tamanho da página
+     * @param sortBy Campo para ordenação
+     * @param direction Direção da ordenação (ASC ou DESC)
+     * @return Resposta paginada com DTOs de pessoas que correspondem ao critério
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<PersonDTO> findByNamePaged(String name, int page, int size, String sortBy, String direction) {
+        log.info("Searching persons with name containing: {} (page: {}, size: {})", name, page, size);
+        
+        Sort sort = direction.equalsIgnoreCase("DESC") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Person> personPage = personRepository.findByNameContainingIgnoreCase(name, pageable);
+        
+        List<PersonDTO> personDTOs = personPage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        
+        return PageResponse.<PersonDTO>builder()
+                .content(personDTOs)
+                .pageNumber(personPage.getNumber())
+                .pageSize(personPage.getSize())
+                .totalElements(personPage.getTotalElements())
+                .totalPages(personPage.getTotalPages())
+                .last(personPage.isLast())
+                .build();
     }
     
     /**
@@ -100,7 +175,7 @@ public class PersonService {
      * @throws ResourceNotFoundException se a pessoa não for encontrada
      */
     @CachePut(value = Constants.Cache.PERSON_CACHE, key = "#id")
-    public PersonDTO update(Long id, PersonDTO personDTO) {
+    public PersonDTO update(UUID id, PersonDTO personDTO) {
         Objects.requireNonNull(personDTO, "PersonDTO cannot be null");
         log.info("Updating person with id: {}", id);
         Person existingPerson = personRepository.findById(id)
@@ -123,7 +198,7 @@ public class PersonService {
         @CacheEvict(value = Constants.Cache.PERSON_CACHE, key = "#id"),
         @CacheEvict(value = Constants.Cache.ALL_PERSONS_CACHE, allEntries = true)
     })
-    public void delete(Long id) {
+    public void delete(UUID id) {
         log.info("Deleting person with id: {}", id);
         Person person = personRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + id));

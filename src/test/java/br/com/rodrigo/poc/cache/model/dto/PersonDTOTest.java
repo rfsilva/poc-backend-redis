@@ -2,15 +2,20 @@ package br.com.rodrigo.poc.cache.model.dto;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PersonDTOTest {
 
     @Test
     void builder_ShouldCreatePersonDTOWithAllFields() {
+        // Given
+        UUID id = UUID.randomUUID();
+        
         // When
         PersonDTO personDTO = PersonDTO.builder()
-                .id(1L)
+                .id(id)
                 .name("John Doe")
                 .email("john.doe@example.com")
                 .address("123 Main St")
@@ -18,7 +23,7 @@ class PersonDTOTest {
                 .build();
 
         // Then
-        assertEquals(1L, personDTO.getId());
+        assertEquals(id, personDTO.getId());
         assertEquals("John Doe", personDTO.getName());
         assertEquals("john.doe@example.com", personDTO.getEmail());
         assertEquals("123 Main St", personDTO.getAddress());
@@ -40,11 +45,14 @@ class PersonDTOTest {
 
     @Test
     void allArgsConstructor_ShouldCreatePersonDTOWithAllFields() {
+        // Given
+        UUID id = UUID.randomUUID();
+        
         // When
-        PersonDTO personDTO = new PersonDTO(1L, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        PersonDTO personDTO = new PersonDTO(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
 
         // Then
-        assertEquals(1L, personDTO.getId());
+        assertEquals(id, personDTO.getId());
         assertEquals("John Doe", personDTO.getName());
         assertEquals("john.doe@example.com", personDTO.getEmail());
         assertEquals("123 Main St", personDTO.getAddress());
@@ -55,16 +63,17 @@ class PersonDTOTest {
     void setters_ShouldUpdateFields() {
         // Given
         PersonDTO personDTO = new PersonDTO();
+        UUID id = UUID.randomUUID();
 
         // When
-        personDTO.setId(1L);
+        personDTO.setId(id);
         personDTO.setName("John Doe");
         personDTO.setEmail("john.doe@example.com");
         personDTO.setAddress("123 Main St");
         personDTO.setPhoneNumber("555-1234");
 
         // Then
-        assertEquals(1L, personDTO.getId());
+        assertEquals(id, personDTO.getId());
         assertEquals("John Doe", personDTO.getName());
         assertEquals("john.doe@example.com", personDTO.getEmail());
         assertEquals("123 Main St", personDTO.getAddress());
@@ -74,7 +83,8 @@ class PersonDTOTest {
     @Test
     void equals_WithSameObject_ShouldReturnTrue() {
         // Given
-        PersonDTO personDTO = new PersonDTO(1L, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        UUID id = UUID.randomUUID();
+        PersonDTO personDTO = new PersonDTO(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
 
         // When & Then
         assertEquals(personDTO, personDTO);
@@ -83,8 +93,9 @@ class PersonDTOTest {
     @Test
     void equals_WithEqualObject_ShouldReturnTrue() {
         // Given
-        PersonDTO personDTO1 = new PersonDTO(1L, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
-        PersonDTO personDTO2 = new PersonDTO(1L, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        UUID id = UUID.randomUUID();
+        PersonDTO personDTO1 = new PersonDTO(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        PersonDTO personDTO2 = new PersonDTO(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
 
         // When & Then
         assertEquals(personDTO1, personDTO2);
@@ -94,8 +105,8 @@ class PersonDTOTest {
     @Test
     void equals_WithDifferentObject_ShouldReturnFalse() {
         // Given
-        PersonDTO personDTO1 = new PersonDTO(1L, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
-        PersonDTO personDTO2 = new PersonDTO(2L, "Jane Doe", "jane.doe@example.com", "456 Oak St", "555-5678");
+        PersonDTO personDTO1 = new PersonDTO(UUID.randomUUID(), "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        PersonDTO personDTO2 = new PersonDTO(UUID.randomUUID(), "Jane Doe", "jane.doe@example.com", "456 Oak St", "555-5678");
 
         // When & Then
         assertNotEquals(personDTO1, personDTO2);
@@ -105,13 +116,14 @@ class PersonDTOTest {
     @Test
     void toString_ShouldContainAllFields() {
         // Given
-        PersonDTO personDTO = new PersonDTO(1L, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        UUID id = UUID.randomUUID();
+        PersonDTO personDTO = new PersonDTO(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
 
         // When
         String toString = personDTO.toString();
 
         // Then
-        assertTrue(toString.contains("id=1"));
+        assertTrue(toString.contains("id=" + id));
         assertTrue(toString.contains("name=John Doe"));
         assertTrue(toString.contains("email=john.doe@example.com"));
         assertTrue(toString.contains("address=123 Main St"));

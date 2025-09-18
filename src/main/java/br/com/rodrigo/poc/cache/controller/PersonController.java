@@ -1,5 +1,6 @@
 package br.com.rodrigo.poc.cache.controller;
 
+import br.com.rodrigo.poc.cache.model.dto.PageResponse;
 import br.com.rodrigo.poc.cache.model.dto.PersonDTO;
 import br.com.rodrigo.poc.cache.service.PersonService;
 import br.com.rodrigo.poc.cache.util.Constants;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Controlador REST para operações com pessoas
@@ -52,6 +54,30 @@ public class PersonController {
     }
     
     /**
+     * Retorna todas as pessoas cadastradas com paginação
+     * 
+     * @param page Número da página (começando em 0)
+     * @param size Tamanho da página
+     * @param sortBy Campo para ordenação
+     * @param direction Direção da ordenação (ASC ou DESC)
+     * @return Resposta paginada com pessoas
+     */
+    @GetMapping("/paged")
+    @Operation(summary = "Listar pessoas com paginação", description = "Retorna uma lista paginada de pessoas")
+    @ApiResponse(responseCode = "200", description = "Pessoas encontradas com sucesso")
+    public ResponseEntity<PageResponse<PersonDTO>> getAllPersonsPaged(
+            @Parameter(description = "Número da página (começando em 0)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Campo para ordenação")
+            @RequestParam(defaultValue = "name") String sortBy,
+            @Parameter(description = "Direção da ordenação (ASC ou DESC)")
+            @RequestParam(defaultValue = "ASC") String direction) {
+        return ResponseEntity.ok(personService.findAllPaged(page, size, sortBy, direction));
+    }
+    
+    /**
      * Busca uma pessoa pelo ID
      * 
      * @param id ID da pessoa
@@ -65,7 +91,7 @@ public class PersonController {
     })
     public ResponseEntity<PersonDTO> getPersonById(
             @Parameter(description = "ID da pessoa", required = true)
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         return ResponseEntity.ok(personService.findById(id));
     }
     
@@ -82,6 +108,33 @@ public class PersonController {
             @Parameter(description = "Nome ou parte do nome para busca", required = true)
             @RequestParam @NotBlank String name) {
         return ResponseEntity.ok(personService.findByName(name));
+    }
+    
+    /**
+     * Busca pessoas pelo nome com paginação
+     * 
+     * @param name Nome ou parte do nome para busca
+     * @param page Número da página (começando em 0)
+     * @param size Tamanho da página
+     * @param sortBy Campo para ordenação
+     * @param direction Direção da ordenação (ASC ou DESC)
+     * @return Resposta paginada com pessoas que correspondem ao critério
+     */
+    @GetMapping("/search/paged")
+    @Operation(summary = "Buscar pessoas por nome com paginação", description = "Retorna uma lista paginada de pessoas que contêm o nome informado")
+    @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
+    public ResponseEntity<PageResponse<PersonDTO>> searchPersonsByNamePaged(
+            @Parameter(description = "Nome ou parte do nome para busca", required = true)
+            @RequestParam @NotBlank String name,
+            @Parameter(description = "Número da página (começando em 0)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Campo para ordenação")
+            @RequestParam(defaultValue = "name") String sortBy,
+            @Parameter(description = "Direção da ordenação (ASC ou DESC)")
+            @RequestParam(defaultValue = "ASC") String direction) {
+        return ResponseEntity.ok(personService.findByNamePaged(name, page, size, sortBy, direction));
     }
     
     /**
@@ -118,7 +171,7 @@ public class PersonController {
     })
     public ResponseEntity<PersonDTO> updatePerson(
             @Parameter(description = "ID da pessoa", required = true)
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Parameter(description = "Novos dados da pessoa", required = true)
             @Valid @RequestBody PersonDTO personDTO) {
         return ResponseEntity.ok(personService.update(id, personDTO));
@@ -138,7 +191,7 @@ public class PersonController {
     })
     public ResponseEntity<Void> deletePerson(
             @Parameter(description = "ID da pessoa", required = true)
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         personService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -148,11 +201,11 @@ public class PersonController {
      * 
      * @return Resposta sem conteúdo
      */
-    @PostMapping(Constants.Endpoints.CACHE_CLEAR)
+    @DeleteMapping(Constants.Endpoints.CACHE_CLEAR)
     @Operation(summary = "Limpar cache", description = "Limpa todo o cache de pessoas")
-    @ApiResponse(responseCode = "200", description = "Cache limpo com sucesso")
+    @ApiResponse(responseCode = "204", description = "Cache limpo com sucesso")
     public ResponseEntity<Void> clearCache() {
         personService.clearCache();
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

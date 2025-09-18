@@ -5,13 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class PersonRepositoryTest {
 
     @Autowired
@@ -113,7 +116,7 @@ class PersonRepositoryTest {
     @Test
     void findById_WithNonExistingId_ShouldReturnEmpty() {
         // When
-        Optional<Person> result = personRepository.findById(999L);
+        Optional<Person> result = personRepository.findById(UUID.randomUUID());
 
         // Then
         assertFalse(result.isPresent());
@@ -154,7 +157,7 @@ class PersonRepositoryTest {
         person = entityManager.persist(person);
         entityManager.flush();
         
-        Long personId = person.getId();
+        UUID personId = person.getId();
 
         // When
         personRepository.delete(person);

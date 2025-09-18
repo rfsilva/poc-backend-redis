@@ -3,26 +3,26 @@ package br.com.rodrigo.poc.cache.config;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import static org.mockito.Mockito.mock;
+
 /**
- * Configuração do Redis para testes
+ * Configuração do Redis para testes usando mocks
  */
 @TestConfiguration
 public class TestRedisConfiguration {
 
     /**
-     * Cria uma fábrica de conexão Redis para testes
+     * Cria uma fábrica de conexão Redis mockada para testes
      * 
-     * @return Fábrica de conexão Redis
+     * @return Fábrica de conexão Redis mockada
      */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(new RedisStandaloneConfiguration("localhost", 6379));
+        return mock(RedisConnectionFactory.class);
     }
 
     /**
@@ -45,7 +45,6 @@ public class TestRedisConfiguration {
         template.setHashKeySerializer(stringSerializer);
         template.setHashValueSerializer(jsonSerializer);
         
-        template.afterPropertiesSet();
         return template;
     }
 }

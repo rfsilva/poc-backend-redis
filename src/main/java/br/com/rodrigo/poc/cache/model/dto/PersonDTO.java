@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * DTO para transferência de dados de pessoa entre camadas
@@ -21,7 +22,7 @@ public class PersonDTO implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
-    private Long id;
+    private UUID id;
     
     @NotBlank(message = "Name is required")
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")

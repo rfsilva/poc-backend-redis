@@ -2,6 +2,7 @@ package br.com.rodrigo.poc.cache.service;
 
 import br.com.rodrigo.poc.cache.exception.ResourceNotFoundException;
 import br.com.rodrigo.poc.cache.model.Person;
+import br.com.rodrigo.poc.cache.model.dto.PageResponse;
 import br.com.rodrigo.poc.cache.model.dto.PersonDTO;
 import br.com.rodrigo.poc.cache.repository.PersonRepository;
 import br.com.rodrigo.poc.cache.util.Constants;
@@ -11,14 +12,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,7 +35,7 @@ class PersonServiceTest {
 
     private Person person;
     private PersonDTO personDTO;
-    private final Long personId = 1L;
+    private final UUID personId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
@@ -70,6 +73,61 @@ class PersonServiceTest {
         assertEquals(personDTO.getEmail(), result.get(0).getEmail());
         verify(personRepository, times(1)).findAll();
     }
+    
+    @Test
+    void findAllPaged_ShouldReturnPagedPersons() {
+        // Given
+        int page = 0;
+        int size = 10;
+        String sortBy = "name";
+        String direction = "ASC";
+        
+        List<Person> persons = Arrays.asList(person);
+        Page<Person> pagedResponse = new PageImpl<>(persons, PageRequest.of(page, size, Sort.by(sortBy)), 1);
+        
+        when(personRepository.findAll(any(Pageable.class))).thenReturn(pagedResponse);
+
+        // When
+        PageResponse<PersonDTO> result = personService.findAllPaged(page, size, sortBy, direction);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(personDTO.getName(), result.getContent().get(0).getName());
+        assertEquals(personDTO.getEmail(), result.getContent().get(0).getEmail());
+        assertEquals(0, result.getPageNumber());
+        assertEquals(10, result.getPageSize());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getTotalPages());
+        assertTrue(result.isLast());
+        
+        verify(personRepository, times(1)).findAll(any(Pageable.class));
+    }
+    
+    @Test
+    void findAllPaged_WithDescendingOrder_ShouldReturnPagedPersons() {
+        // Given
+        int page = 0;
+        int size = 10;
+        String sortBy = "name";
+        String direction = "DESC";
+        
+        List<Person> persons = Arrays.asList(person);
+        Page<Person> pagedResponse = new PageImpl<>(persons, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy)), 1);
+        
+        when(personRepository.findAll(any(Pageable.class))).thenReturn(pagedResponse);
+
+        // When
+        PageResponse<PersonDTO> result = personService.findAllPaged(page, size, sortBy, direction);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(personDTO.getName(), result.getContent().get(0).getName());
+        assertEquals(personDTO.getEmail(), result.getContent().get(0).getEmail());
+        
+        verify(personRepository, times(1)).findAll(any(Pageable.class));
+    }
 
     @Test
     void findById_WithExistingId_ShouldReturnPerson() {
@@ -90,13 +148,14 @@ class PersonServiceTest {
     @Test
     void findById_WithNonExistingId_ShouldThrowException() {
         // Given
-        when(personRepository.findById(anyLong())).thenReturn(Optional.empty());
+        UUID nonExistingId = UUID.randomUUID();
+        when(personRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> personService.findById(999L));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + "999", exception.getMessage());
-        verify(personRepository, times(1)).findById(999L);
+                () -> personService.findById(nonExistingId));
+        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        verify(personRepository, times(1)).findById(nonExistingId);
     }
 
     @Test
@@ -114,6 +173,63 @@ class PersonServiceTest {
         assertEquals(1, result.size());
         assertEquals(personDTO.getName(), result.get(0).getName());
         verify(personRepository, times(1)).findByNameContainingIgnoreCase(nameQuery);
+    }
+    
+    @Test
+    void findByNamePaged_ShouldReturnPagedMatchingPersons() {
+        // Given
+        String nameQuery = "John";
+        int page = 0;
+        int size = 10;
+        String sortBy = "name";
+        String direction = "ASC";
+        
+        List<Person> persons = Arrays.asList(person);
+        Page<Person> pagedResponse = new PageImpl<>(persons, PageRequest.of(page, size, Sort.by(sortBy)), 1);
+        
+        when(personRepository.findByNameContainingIgnoreCase(eq(nameQuery), any(Pageable.class))).thenReturn(pagedResponse);
+
+        // When
+        PageResponse<PersonDTO> result = personService.findByNamePaged(nameQuery, page, size, sortBy, direction);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(personDTO.getName(), result.getContent().get(0).getName());
+        assertEquals(personDTO.getEmail(), result.getContent().get(0).getEmail());
+        assertEquals(0, result.getPageNumber());
+        assertEquals(10, result.getPageSize());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getTotalPages());
+        assertTrue(result.isLast());
+        
+        verify(personRepository, times(1)).findByNameContainingIgnoreCase(eq(nameQuery), any(Pageable.class));
+    }
+    
+    @Test
+    void findByNamePaged_WithDescendingOrder_ShouldReturnPagedMatchingPersons() {
+        // Given
+        String nameQuery = "John";
+        int page = 0;
+        int size = 10;
+        String sortBy = "name";
+        String direction = "DESC";
+        
+        List<Person> persons = Arrays.asList(person);
+        Page<Person> pagedResponse = new PageImpl<>(persons, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy)), 1);
+        
+        when(personRepository.findByNameContainingIgnoreCase(eq(nameQuery), any(Pageable.class))).thenReturn(pagedResponse);
+
+        // When
+        PageResponse<PersonDTO> result = personService.findByNamePaged(nameQuery, page, size, sortBy, direction);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(personDTO.getName(), result.getContent().get(0).getName());
+        assertEquals(personDTO.getEmail(), result.getContent().get(0).getEmail());
+        
+        verify(personRepository, times(1)).findByNameContainingIgnoreCase(eq(nameQuery), any(Pageable.class));
     }
 
     @Test
@@ -176,13 +292,14 @@ class PersonServiceTest {
     @Test
     void update_WithNonExistingId_ShouldThrowException() {
         // Given
-        when(personRepository.findById(anyLong())).thenReturn(Optional.empty());
+        UUID nonExistingId = UUID.randomUUID();
+        when(personRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> personService.update(999L, personDTO));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + "999", exception.getMessage());
-        verify(personRepository, times(1)).findById(999L);
+                () -> personService.update(nonExistingId, personDTO));
+        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        verify(personRepository, times(1)).findById(nonExistingId);
         verify(personRepository, never()).save(any(Person.class));
     }
 
@@ -190,7 +307,7 @@ class PersonServiceTest {
     void update_WithNullDTO_ShouldThrowException() {
         // When & Then
         assertThrows(NullPointerException.class, () -> personService.update(personId, null));
-        verify(personRepository, never()).findById(anyLong());
+        verify(personRepository, never()).findById(any(UUID.class));
         verify(personRepository, never()).save(any(Person.class));
     }
 
@@ -211,13 +328,14 @@ class PersonServiceTest {
     @Test
     void delete_WithNonExistingId_ShouldThrowException() {
         // Given
-        when(personRepository.findById(anyLong())).thenReturn(Optional.empty());
+        UUID nonExistingId = UUID.randomUUID();
+        when(personRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> personService.delete(999L));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + "999", exception.getMessage());
-        verify(personRepository, times(1)).findById(999L);
+                () -> personService.delete(nonExistingId));
+        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        verify(personRepository, times(1)).findById(nonExistingId);
         verify(personRepository, never()).delete(any(Person.class));
     }
 

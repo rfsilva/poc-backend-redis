@@ -1,6 +1,7 @@
 package br.com.rodrigo.poc.cache.controller;
 
 import br.com.rodrigo.poc.cache.exception.ResourceNotFoundException;
+import br.com.rodrigo.poc.cache.model.dto.PageResponse;
 import br.com.rodrigo.poc.cache.model.dto.PersonDTO;
 import br.com.rodrigo.poc.cache.service.PersonService;
 import br.com.rodrigo.poc.cache.util.Constants;
@@ -15,10 +16,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,7 +32,7 @@ class PersonControllerTest {
     private PersonController personController;
 
     private PersonDTO personDTO;
-    private final Long personId = 1L;
+    private final UUID personId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
@@ -61,6 +62,43 @@ class PersonControllerTest {
         assertEquals(personDTO.getName(), response.getBody().get(0).getName());
         verify(personService, times(1)).findAll();
     }
+    
+    @Test
+    void getAllPersonsPaged_ShouldReturnPagedPersons() {
+        // Given
+        int page = 0;
+        int size = 10;
+        String sortBy = "name";
+        String direction = "ASC";
+        
+        List<PersonDTO> persons = Arrays.asList(personDTO);
+        PageResponse<PersonDTO> pageResponse = PageResponse.<PersonDTO>builder()
+                .content(persons)
+                .pageNumber(page)
+                .pageSize(size)
+                .totalElements(1)
+                .totalPages(1)
+                .last(true)
+                .build();
+        
+        when(personService.findAllPaged(page, size, sortBy, direction)).thenReturn(pageResponse);
+
+        // When
+        ResponseEntity<PageResponse<PersonDTO>> response = personController.getAllPersonsPaged(page, size, sortBy, direction);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(personDTO.getName(), response.getBody().getContent().get(0).getName());
+        assertEquals(0, response.getBody().getPageNumber());
+        assertEquals(10, response.getBody().getPageSize());
+        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(1, response.getBody().getTotalPages());
+        assertTrue(response.getBody().isLast());
+        
+        verify(personService, times(1)).findAllPaged(page, size, sortBy, direction);
+    }
 
     @Test
     void getPersonById_WithExistingId_ShouldReturnPerson() {
@@ -81,14 +119,15 @@ class PersonControllerTest {
     @Test
     void getPersonById_WithNonExistingId_ShouldThrowException() {
         // Given
-        when(personService.findById(anyLong())).thenThrow(
-                new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + "999"));
+        UUID nonExistingId = UUID.randomUUID();
+        when(personService.findById(any(UUID.class))).thenThrow(
+                new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId));
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> personController.getPersonById(999L));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + "999", exception.getMessage());
-        verify(personService, times(1)).findById(999L);
+                () -> personController.getPersonById(nonExistingId));
+        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        verify(personService, times(1)).findById(nonExistingId);
     }
 
     @Test
@@ -107,6 +146,44 @@ class PersonControllerTest {
         assertEquals(1, response.getBody().size());
         assertEquals(personDTO.getName(), response.getBody().get(0).getName());
         verify(personService, times(1)).findByName(nameQuery);
+    }
+    
+    @Test
+    void searchPersonsByNamePaged_ShouldReturnPagedMatchingPersons() {
+        // Given
+        String nameQuery = "John";
+        int page = 0;
+        int size = 10;
+        String sortBy = "name";
+        String direction = "ASC";
+        
+        List<PersonDTO> persons = Arrays.asList(personDTO);
+        PageResponse<PersonDTO> pageResponse = PageResponse.<PersonDTO>builder()
+                .content(persons)
+                .pageNumber(page)
+                .pageSize(size)
+                .totalElements(1)
+                .totalPages(1)
+                .last(true)
+                .build();
+        
+        when(personService.findByNamePaged(nameQuery, page, size, sortBy, direction)).thenReturn(pageResponse);
+
+        // When
+        ResponseEntity<PageResponse<PersonDTO>> response = personController.searchPersonsByNamePaged(nameQuery, page, size, sortBy, direction);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(personDTO.getName(), response.getBody().getContent().get(0).getName());
+        assertEquals(0, response.getBody().getPageNumber());
+        assertEquals(10, response.getBody().getPageSize());
+        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(1, response.getBody().getTotalPages());
+        assertTrue(response.getBody().isLast());
+        
+        verify(personService, times(1)).findByNamePaged(nameQuery, page, size, sortBy, direction);
     }
 
     @Test
@@ -136,7 +213,7 @@ class PersonControllerTest {
                 .phoneNumber("555-5678")
                 .build();
 
-        when(personService.update(anyLong(), any(PersonDTO.class))).thenReturn(updatedDTO);
+        when(personService.update(any(UUID.class), any(PersonDTO.class))).thenReturn(updatedDTO);
 
         // When
         ResponseEntity<PersonDTO> response = personController.updatePerson(personId, updatedDTO);
@@ -152,14 +229,15 @@ class PersonControllerTest {
     @Test
     void updatePerson_WithNonExistingId_ShouldThrowException() {
         // Given
-        when(personService.update(anyLong(), any(PersonDTO.class))).thenThrow(
-                new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + "999"));
+        UUID nonExistingId = UUID.randomUUID();
+        when(personService.update(any(UUID.class), any(PersonDTO.class))).thenThrow(
+                new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId));
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> personController.updatePerson(999L, personDTO));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + "999", exception.getMessage());
-        verify(personService, times(1)).update(999L, personDTO);
+                () -> personController.updatePerson(nonExistingId, personDTO));
+        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        verify(personService, times(1)).update(nonExistingId, personDTO);
     }
 
     @Test
@@ -179,18 +257,19 @@ class PersonControllerTest {
     @Test
     void deletePerson_WithNonExistingId_ShouldThrowException() {
         // Given
-        doThrow(new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + "999"))
-                .when(personService).delete(999L);
+        UUID nonExistingId = UUID.randomUUID();
+        doThrow(new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId))
+                .when(personService).delete(nonExistingId);
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> personController.deletePerson(999L));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + "999", exception.getMessage());
-        verify(personService, times(1)).delete(999L);
+                () -> personController.deletePerson(nonExistingId));
+        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        verify(personService, times(1)).delete(nonExistingId);
     }
 
     @Test
-    void clearCache_ShouldReturnOk() {
+    void clearCache_ShouldReturnNoContent() {
         // Given
         doNothing().when(personService).clearCache();
 
@@ -198,7 +277,7 @@ class PersonControllerTest {
         ResponseEntity<Void> response = personController.clearCache();
 
         // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertNull(response.getBody());
         verify(personService, times(1)).clearCache();
     }
