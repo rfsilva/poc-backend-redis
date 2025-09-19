@@ -4,7 +4,6 @@ import br.com.rodrigo.poc.cache.exception.ResourceNotFoundException;
 import br.com.rodrigo.poc.cache.model.dto.PageResponse;
 import br.com.rodrigo.poc.cache.model.dto.PersonDTO;
 import br.com.rodrigo.poc.cache.service.PersonService;
-import br.com.rodrigo.poc.cache.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -120,13 +119,14 @@ class PersonControllerTest {
     void getPersonById_WithNonExistingId_ShouldThrowException() {
         // Given
         UUID nonExistingId = UUID.randomUUID();
+        String errorMessage = "Person not found with id: " + nonExistingId;
         when(personService.findById(any(UUID.class))).thenThrow(
-                new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId));
+                new ResourceNotFoundException(errorMessage));
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> personController.getPersonById(nonExistingId));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        assertEquals(errorMessage, exception.getMessage());
         verify(personService, times(1)).findById(nonExistingId);
     }
 
@@ -230,13 +230,14 @@ class PersonControllerTest {
     void updatePerson_WithNonExistingId_ShouldThrowException() {
         // Given
         UUID nonExistingId = UUID.randomUUID();
+        String errorMessage = "Person not found with id: " + nonExistingId;
         when(personService.update(any(UUID.class), any(PersonDTO.class))).thenThrow(
-                new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId));
+                new ResourceNotFoundException(errorMessage));
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> personController.updatePerson(nonExistingId, personDTO));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        assertEquals(errorMessage, exception.getMessage());
         verify(personService, times(1)).update(nonExistingId, personDTO);
     }
 
@@ -258,13 +259,14 @@ class PersonControllerTest {
     void deletePerson_WithNonExistingId_ShouldThrowException() {
         // Given
         UUID nonExistingId = UUID.randomUUID();
-        doThrow(new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId))
+        String errorMessage = "Person not found with id: " + nonExistingId;
+        doThrow(new ResourceNotFoundException(errorMessage))
                 .when(personService).delete(nonExistingId);
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> personController.deletePerson(nonExistingId));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        assertEquals(errorMessage, exception.getMessage());
         verify(personService, times(1)).delete(nonExistingId);
     }
 

@@ -1,5 +1,7 @@
 package br.com.rodrigo.poc.cache.exception;
 
+import br.com.rodrigo.poc.cache.service.MessageService;
+import br.com.rodrigo.poc.cache.util.Constants;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
@@ -25,6 +27,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
+
+    @Mock
+    private MessageService messageService;
 
     @InjectMocks
     private GlobalExceptionHandler exceptionHandler;
@@ -75,7 +80,6 @@ class GlobalExceptionHandlerTest {
         
         when(ex.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getAllErrors()).thenReturn(Collections.singletonList(fieldError));
-        // Removido o stubbing desnecessário para webRequest.getDescription()
 
         // When
         ResponseEntity<Map<String, String>> response = exceptionHandler.handleValidationExceptions(ex, webRequest);
@@ -90,24 +94,19 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleConstraintViolation_ShouldReturnBadRequestStatus() {
         // Given
-        // Criamos um mock para ConstraintViolation
         @SuppressWarnings("unchecked")
         ConstraintViolation<Object> violation = mock(ConstraintViolation.class);
         Path path = mock(Path.class);
         
-        // Configuramos apenas os mocks que são realmente usados
         when(violation.getPropertyPath()).thenReturn(path);
         when(path.toString()).thenReturn("field");
         when(violation.getMessage()).thenReturn("error message");
         
-        // Criamos o conjunto de violações
         Set<ConstraintViolation<?>> violations = new HashSet<>();
         violations.add(violation);
         
-        // Criamos a exceção com o conjunto de violações
         ConstraintViolationException ex = mock(ConstraintViolationException.class);
         when(ex.getConstraintViolations()).thenReturn(violations);
-        // Removido o stubbing desnecessário para webRequest.getDescription()
 
         // When
         ResponseEntity<Map<String, String>> response = exceptionHandler.handleConstraintViolation(ex, webRequest);
@@ -124,6 +123,7 @@ class GlobalExceptionHandlerTest {
         // Given
         Exception ex = new Exception("Unexpected error");
         when(webRequest.getDescription(false)).thenReturn("test-request");
+        when(messageService.getMessage(Constants.MessageCodes.UNEXPECTED_ERROR)).thenReturn("An unexpected error occurred. Please contact support.");
 
         // When
         ResponseEntity<GlobalExceptionHandler.ErrorResponse> response = exceptionHandler.handleGlobalException(ex, webRequest);

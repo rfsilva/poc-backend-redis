@@ -28,10 +28,11 @@ class ConstantsTest {
     }
 
     @Test
-    void errorMessagesConstants_ShouldHaveExpectedValues() {
-        assertEquals("Person not found with id: ", Constants.ErrorMessages.PERSON_NOT_FOUND);
-        assertEquals("Validation error", Constants.ErrorMessages.VALIDATION_ERROR);
-        assertEquals("An unexpected error occurred. Please contact support.", Constants.ErrorMessages.UNEXPECTED_ERROR);
+    void messageCodesConstants_ShouldHaveExpectedValues() {
+        assertEquals("error.person.notFound", Constants.MessageCodes.PERSON_NOT_FOUND);
+        assertEquals("error.validation", Constants.MessageCodes.VALIDATION_ERROR);
+        assertEquals("error.unexpected", Constants.MessageCodes.UNEXPECTED_ERROR);
+        assertEquals("error.cpf.invalid", Constants.MessageCodes.INVALID_CPF);
     }
 
     @Test
@@ -50,8 +51,8 @@ class ConstantsTest {
     }
 
     @Test
-    void errorMessagesConstructor_ShouldBePrivate() throws NoSuchMethodException {
-        Constructor<Constants.ErrorMessages> constructor = Constants.ErrorMessages.class.getDeclaredConstructor();
+    void messageCodesConstructor_ShouldBePrivate() throws NoSuchMethodException {
+        Constructor<Constants.MessageCodes> constructor = Constants.MessageCodes.class.getDeclaredConstructor();
         assertTrue(Modifier.isPrivate(constructor.getModifiers()));
     }
 

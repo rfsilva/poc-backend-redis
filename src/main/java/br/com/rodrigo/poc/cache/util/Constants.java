@@ -23,17 +23,17 @@ public final class Constants {
     }
     
     /**
-     * Constantes relacionadas a mensagens de erro
+     * Constantes relacionadas a códigos de mensagens
      */
-    public static final class ErrorMessages {
-        private ErrorMessages() {
+    public static final class MessageCodes {
+        private MessageCodes() {
             // Construtor privado para evitar instanciação
         }
         
-        public static final String PERSON_NOT_FOUND = "Person not found with id: ";
-        public static final String VALIDATION_ERROR = "Validation error";
-        public static final String UNEXPECTED_ERROR = "An unexpected error occurred. Please contact support.";
-        public static final String INVALID_CPF = "Invalid CPF. Please provide a valid CPF number.";
+        public static final String PERSON_NOT_FOUND = "error.person.notFound";
+        public static final String VALIDATION_ERROR = "error.validation";
+        public static final String UNEXPECTED_ERROR = "error.unexpected";
+        public static final String INVALID_CPF = "error.cpf.invalid";
     }
     
     /**

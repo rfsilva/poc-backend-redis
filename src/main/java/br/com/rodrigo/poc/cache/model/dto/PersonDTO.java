@@ -8,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -25,31 +28,31 @@ public class PersonDTO implements Serializable {
     
     private UUID id;
     
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    @NotBlank(message = "{validation.person.name.required}")
+    @Size(min = 2, max = 100, message = "{validation.person.name.size}")
     private String name;
     
-    @Email(message = "Email should be valid")
-    @Size(max = 100, message = "Email must not exceed 100 characters")
+    @Email(message = "{validation.person.email.valid}")
+    @Size(max = 100, message = "{validation.person.email.size}")
     private String email;
     
-    @Size(max = 200, message = "Address must not exceed 200 characters")
+    @Size(max = 200, message = "{validation.person.address.size}")
     private String address;
     
-    @Size(max = 20, message = "Phone number must not exceed 20 characters")
+    @Size(max = 20, message = "{validation.person.phoneNumber.size}")
     private String phoneNumber;
     
-    @Size(min = 11, max = 11, message = "CPF must have 11 digits")
-    @Pattern(regexp = "\\d{11}", message = "CPF must contain only numbers")
+    @Size(min = 11, max = 11, message = "{validation.person.cpf.size}")
+    @Pattern(regexp = "\\d{11}", message = "{validation.person.cpf.pattern}")
     private String cpf;
     
-    @NotBlank(message = "Nationality is required")
-    @Size(min = 3, max = 3, message = "Nationality code must have 3 characters")
+    @NotBlank(message = "{validation.person.nationality.required}")
+    @Size(min = 3, max = 3, message = "{validation.person.nationality.size}")
     private String nationality;
     
     private String passport;
     
-    @Pattern(regexp = "[MF]", message = "Gender must be 'M' or 'F'")
+    @Pattern(regexp = "[MF]", message = "{validation.person.gender.pattern}")
     private String gender;
     
     // Campos formatados para o frontend
@@ -57,6 +60,14 @@ public class PersonDTO implements Serializable {
     private String nationalityName;
     private String nationalityFlag;
     private String genderDisplay;
+    
+    // Serviço de mensagens para internacionalização
+    private static MessageSource messageSource;
+    
+    @Autowired
+    public void setMessageSource(MessageSource messageSource) {
+        PersonDTO.messageSource = messageSource;
+    }
     
     /**
      * Formata o CPF para exibição (XXX.XXX.XXX-XX)
@@ -77,26 +88,11 @@ public class PersonDTO implements Serializable {
      * @return Nome do país
      */
     public String getNationalityName() {
-        if (nationality == null) {
-            return null;
+        if (nationality == null || messageSource == null) {
+            return nationality;
         }
         
-        switch (nationality) {
-            case "BRA": return "Brasil";
-            case "USA": return "Estados Unidos";
-            case "GBR": return "Reino Unido";
-            case "FRA": return "França";
-            case "DEU": return "Alemanha";
-            case "ESP": return "Espanha";
-            case "JPN": return "Japão";
-            case "CHN": return "China";
-            case "IND": return "Índia";
-            case "CAN": return "Canadá";
-            case "AUS": return "Austrália";
-            case "RUS": return "Rússia";
-            case "ARG": return "Argentina";
-            default: return nationality;
-        }
+        return messageSource.getMessage("country." + nationality, null, nationality, LocaleContextHolder.getLocale());
     }
     
     /**
@@ -123,12 +119,14 @@ public class PersonDTO implements Serializable {
     
     /**
      * Retorna o gênero formatado para exibição
-     * @return "Masculino" ou "Feminino"
+     * @return "Masculino" ou "Feminino" de acordo com o idioma
      */
     public String getGenderDisplay() {
-        if (gender == null) {
+        if (gender == null || messageSource == null) {
             return null;
         }
-        return "M".equals(gender) ? "Masculino" : "Feminino";
+        
+        String genderKey = "M".equals(gender) ? "gender.male" : "gender.female";
+        return messageSource.getMessage(genderKey, null, gender, LocaleContextHolder.getLocale());
     }
 }

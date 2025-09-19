@@ -29,6 +29,9 @@ class PersonServiceTest {
 
     @Mock
     private PersonRepository personRepository;
+    
+    @Mock
+    private MessageService messageService;
 
     @InjectMocks
     private PersonService personService;
@@ -55,6 +58,16 @@ class PersonServiceTest {
                 .address("123 Main St")
                 .phoneNumber("555-1234")
                 .build();
+                
+        // Setup message service mock
+        when(messageService.getMessage(eq(Constants.MessageCodes.PERSON_NOT_FOUND), any(Object[].class)))
+            .thenAnswer(invocation -> {
+                Object[] args = invocation.getArgument(1);
+                return "Person not found with id: " + args[0];
+            });
+        
+        when(messageService.getMessage(Constants.MessageCodes.INVALID_CPF))
+            .thenReturn("Invalid CPF. Please provide a valid CPF number.");
     }
 
     @Test
@@ -154,8 +167,9 @@ class PersonServiceTest {
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.findById(nonExistingId));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        assertEquals("Person not found with id: " + nonExistingId, exception.getMessage());
         verify(personRepository, times(1)).findById(nonExistingId);
+        verify(messageService, times(1)).getMessage(eq(Constants.MessageCodes.PERSON_NOT_FOUND), any(Object[].class));
     }
 
     @Test
@@ -298,9 +312,10 @@ class PersonServiceTest {
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.update(nonExistingId, personDTO));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        assertEquals("Person not found with id: " + nonExistingId, exception.getMessage());
         verify(personRepository, times(1)).findById(nonExistingId);
         verify(personRepository, never()).save(any(Person.class));
+        verify(messageService, times(1)).getMessage(eq(Constants.MessageCodes.PERSON_NOT_FOUND), any(Object[].class));
     }
 
     @Test
@@ -334,9 +349,10 @@ class PersonServiceTest {
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.delete(nonExistingId));
-        assertEquals(Constants.ErrorMessages.PERSON_NOT_FOUND + nonExistingId, exception.getMessage());
+        assertEquals("Person not found with id: " + nonExistingId, exception.getMessage());
         verify(personRepository, times(1)).findById(nonExistingId);
         verify(personRepository, never()).delete(any(Person.class));
+        verify(messageService, times(1)).getMessage(eq(Constants.MessageCodes.PERSON_NOT_FOUND), any(Object[].class));
     }
 
     @Test

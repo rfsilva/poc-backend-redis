@@ -1,0 +1,536 @@
+{
+	"info": {
+		"_postman_id": "a5e7b8c9-d0e1-4f23-a456-b789c0d1e2f3",
+		"name": "Redis Demo API",
+		"description": "Collection para testar a API do projeto Redis Demo, incluindo suporte a internacionalização.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Pessoas",
+			"description": "Operações relacionadas a pessoas",
+			"item": [
+				{
+					"name": "Listar todas as pessoas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/persons",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons"
+							]
+						},
+						"description": "Retorna todas as pessoas cadastradas no sistema."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar pessoas (paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/persons?page=0&size=10&sortBy=name&direction=ASC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Número da página (começando em 0)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Tamanho da página"
+								},
+								{
+									"key": "sortBy",
+									"value": "name",
+									"description": "Campo para ordenação"
+								},
+								{
+									"key": "direction",
+									"value": "ASC",
+									"description": "Direção da ordenação (ASC ou DESC)"
+								}
+							]
+						},
+						"description": "Retorna uma lista paginada de pessoas."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar pessoa por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/persons/{{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{personId}}"
+							]
+						},
+						"description": "Retorna uma pessoa específica pelo seu ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar pessoas por nome",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/persons/search?name=John",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "John",
+									"description": "Nome ou parte do nome para busca"
+								}
+							]
+						},
+						"description": "Busca pessoas pelo nome ou parte do nome."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar pessoas por nome (paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/persons/search?name=John&page=0&size=10&sortBy=name&direction=ASC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "John",
+									"description": "Nome ou parte do nome para busca"
+								},
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Número da página (começando em 0)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Tamanho da página"
+								},
+								{
+									"key": "sortBy",
+									"value": "name",
+									"description": "Campo para ordenação"
+								},
+								{
+									"key": "direction",
+									"value": "ASC",
+									"description": "Direção da ordenação (ASC ou DESC)"
+								}
+							]
+						},
+						"description": "Busca pessoas pelo nome ou parte do nome com paginação."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar pessoa",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"address\": \"123 Main St\",\n    \"phoneNumber\": \"555-1234\",\n    \"cpf\": \"52998224725\",\n    \"nationality\": \"BRA\",\n    \"gender\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/persons",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons"
+							]
+						},
+						"description": "Cria uma nova pessoa no sistema."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar pessoa (CPF inválido)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"address\": \"123 Main St\",\n    \"phoneNumber\": \"555-1234\",\n    \"cpf\": \"12345678901\",\n    \"nationality\": \"BRA\",\n    \"gender\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/persons",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons"
+							]
+						},
+						"description": "Tenta criar uma pessoa com CPF inválido para testar a validação."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar pessoa",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Updated\",\n    \"email\": \"john.updated@example.com\",\n    \"address\": \"456 New St\",\n    \"phoneNumber\": \"555-5678\",\n    \"cpf\": \"52998224725\",\n    \"nationality\": \"USA\",\n    \"gender\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/persons/{{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{personId}}"
+							]
+						},
+						"description": "Atualiza os dados de uma pessoa existente."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar pessoa (CPF inválido)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Updated\",\n    \"email\": \"john.updated@example.com\",\n    \"address\": \"456 New St\",\n    \"phoneNumber\": \"555-5678\",\n    \"cpf\": \"12345678901\",\n    \"nationality\": \"USA\",\n    \"gender\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/persons/{{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{personId}}"
+							]
+						},
+						"description": "Tenta atualizar uma pessoa com CPF inválido para testar a validação."
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir pessoa",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/persons/{{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{personId}}"
+							]
+						},
+						"description": "Remove uma pessoa do sistema."
+					},
+					"response": []
+				},
+				{
+					"name": "Limpar cache",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cache/clear",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cache",
+								"clear"
+							]
+						},
+						"description": "Limpa o cache de pessoas."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Internacionalização",
+			"description": "Testes de internacionalização",
+			"item": [
+				{
+					"name": "Testar i18n (Português)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "pt-BR",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/locale/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"locale",
+								"test"
+							]
+						},
+						"description": "Testa a internacionalização em português."
+					},
+					"response": []
+				},
+				{
+					"name": "Testar i18n (Inglês)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "en",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/locale/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"locale",
+								"test"
+							]
+						},
+						"description": "Testa a internacionalização em inglês."
+					},
+					"response": []
+				},
+				{
+					"name": "Testar i18n (Espanhol)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "es",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/locale/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"locale",
+								"test"
+							]
+						},
+						"description": "Testa a internacionalização em espanhol."
+					},
+					"response": []
+				},
+				{
+					"name": "Testar i18n (Italiano)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "it",
+								"description": "Idioma para internacionalização"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/locale/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"locale",
+								"test"
+							]
+						},
+						"description": "Testa a internacionalização em italiano."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "URL base da API"
+		},
+		{
+			"key": "personId",
+			"value": "",
+			"type": "string",
+			"description": "ID de uma pessoa para testes"
+		},
+		{
+			"key": "language",
+			"value": "pt-BR",
+			"type": "string",
+			"description": "Idioma padrão para internacionalização"
+		}
+	]
+}

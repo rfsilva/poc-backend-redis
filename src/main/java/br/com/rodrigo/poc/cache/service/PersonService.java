@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 public class PersonService {
 
     private final PersonRepository personRepository;
+    private final MessageService messageService;
     
     /**
      * Busca todas as pessoas
@@ -99,7 +100,9 @@ public class PersonService {
     public PersonDTO findById(UUID id) {
         log.info("Fetching person with id {} from database", id);
         Person person = personRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    messageService.getMessage(Constants.MessageCodes.PERSON_NOT_FOUND, new Object[]{id})
+                ));
         return convertToDTO(person);
     }
     
@@ -192,7 +195,9 @@ public class PersonService {
         log.info("Updating person with id: {}", id);
         
         Person existingPerson = personRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    messageService.getMessage(Constants.MessageCodes.PERSON_NOT_FOUND, new Object[]{id})
+                ));
         
         // Valida o CPF se estiver presente
         if (personDTO.getCpf() != null && !personDTO.getCpf().isEmpty()) {
@@ -219,7 +224,9 @@ public class PersonService {
     public void delete(UUID id) {
         log.info("Deleting person with id: {}", id);
         Person person = personRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    messageService.getMessage(Constants.MessageCodes.PERSON_NOT_FOUND, new Object[]{id})
+                ));
         personRepository.delete(person);
     }
     
@@ -240,7 +247,7 @@ public class PersonService {
     private void validateCpf(String cpf) {
         if (!CpfValidator.isValid(cpf)) {
             log.error("Invalid CPF provided: {}", cpf);
-            throw new InvalidCpfException(Constants.ErrorMessages.INVALID_CPF);
+            throw new InvalidCpfException(messageService.getMessage(Constants.MessageCodes.INVALID_CPF));
         }
     }
     

@@ -70,6 +70,13 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null
+    
+  # Internationalization (i18n) Configuration
+  messages:
+    basename: messages
+    encoding: UTF-8
+    cache-duration: 3600s
+    fallback-to-system-locale: false
 
 # Logging Configuration
 logging:

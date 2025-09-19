@@ -1,5 +1,7 @@
 package br.com.rodrigo.poc.cache.exception;
 
+import br.com.rodrigo.poc.cache.service.MessageService;
+import br.com.rodrigo.poc.cache.util.Constants;
 import jakarta.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +25,12 @@ import java.util.Map;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    private final MessageService messageService;
+
+    public GlobalExceptionHandler(MessageService messageService) {
+        this.messageService = messageService;
+    }
 
     /**
      * Trata exceções de recurso não encontrado
@@ -127,9 +135,11 @@ public class GlobalExceptionHandler {
             Exception ex, WebRequest request) {
         log.error("Unexpected error occurred", ex);
         
+        String errorMessage = messageService.getMessage(Constants.MessageCodes.UNEXPECTED_ERROR);
+        
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred. Please contact support.",
+                errorMessage,
                 LocalDateTime.now(),
                 request.getDescription(false)
         );

@@ -37,11 +37,11 @@ public class Person implements Serializable {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
     private UUID id;
     
-    @NotBlank(message = "Name is required")
+    @NotBlank(message = "{validation.person.name.required}")
     @Column(nullable = false)
     private String name;
     
-    @Email(message = "Email should be valid")
+    @Email(message = "{validation.person.email.valid}")
     @Column(unique = true)
     private String email;
     
@@ -51,20 +51,20 @@ public class Person implements Serializable {
     @Column(name = "phone_number")
     private String phoneNumber;
     
-    @Size(min = 11, max = 11, message = "CPF must have 11 digits")
-    @Pattern(regexp = "\\d{11}", message = "CPF must contain only numbers")
+    @Size(min = 11, max = 11, message = "{validation.person.cpf.size}")
+    @Pattern(regexp = "\\d{11}", message = "{validation.person.cpf.pattern}")
     @Column(length = 11)
     private String cpf;
     
-    @NotBlank(message = "Nationality is required")
-    @Size(min = 3, max = 3, message = "Nationality code must have 3 characters")
+    @NotBlank(message = "{validation.person.nationality.required}")
+    @Size(min = 3, max = 3, message = "{validation.person.nationality.size}")
     @Column(length = 3, nullable = false)
     private String nationality;
     
     @Column(length = 20)
     private String passport;
     
-    @Pattern(regexp = "[MF]", message = "Gender must be 'M' or 'F'")
+    @Pattern(regexp = "[MF]", message = "{validation.person.gender.pattern}")
     @Column(length = 1)
     private String gender;
 }
