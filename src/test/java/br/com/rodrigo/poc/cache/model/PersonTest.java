@@ -20,6 +20,10 @@ class PersonTest {
                 .email("john.doe@example.com")
                 .address("123 Main St")
                 .phoneNumber("555-1234")
+                .cpf("12345678901")
+                .nationality("BRA")
+                .passport("AB1234567")
+                .gender("M")
                 .build();
 
         // Then
@@ -28,6 +32,10 @@ class PersonTest {
         assertEquals("john.doe@example.com", person.getEmail());
         assertEquals("123 Main St", person.getAddress());
         assertEquals("555-1234", person.getPhoneNumber());
+        assertEquals("12345678901", person.getCpf());
+        assertEquals("BRA", person.getNationality());
+        assertEquals("AB1234567", person.getPassport());
+        assertEquals("M", person.getGender());
     }
 
     @Test
@@ -41,6 +49,10 @@ class PersonTest {
         assertNull(person.getEmail());
         assertNull(person.getAddress());
         assertNull(person.getPhoneNumber());
+        assertNull(person.getCpf());
+        assertNull(person.getNationality());
+        assertNull(person.getPassport());
+        assertNull(person.getGender());
     }
 
     @Test
@@ -49,7 +61,8 @@ class PersonTest {
         UUID id = UUID.randomUUID();
         
         // When
-        Person person = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        Person person = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234", 
+                "12345678901", "BRA", "AB1234567", "M");
 
         // Then
         assertEquals(id, person.getId());
@@ -57,6 +70,10 @@ class PersonTest {
         assertEquals("john.doe@example.com", person.getEmail());
         assertEquals("123 Main St", person.getAddress());
         assertEquals("555-1234", person.getPhoneNumber());
+        assertEquals("12345678901", person.getCpf());
+        assertEquals("BRA", person.getNationality());
+        assertEquals("AB1234567", person.getPassport());
+        assertEquals("M", person.getGender());
     }
 
     @Test
@@ -71,6 +88,10 @@ class PersonTest {
         person.setEmail("john.doe@example.com");
         person.setAddress("123 Main St");
         person.setPhoneNumber("555-1234");
+        person.setCpf("12345678901");
+        person.setNationality("BRA");
+        person.setPassport("AB1234567");
+        person.setGender("M");
 
         // Then
         assertEquals(id, person.getId());
@@ -78,13 +99,18 @@ class PersonTest {
         assertEquals("john.doe@example.com", person.getEmail());
         assertEquals("123 Main St", person.getAddress());
         assertEquals("555-1234", person.getPhoneNumber());
+        assertEquals("12345678901", person.getCpf());
+        assertEquals("BRA", person.getNationality());
+        assertEquals("AB1234567", person.getPassport());
+        assertEquals("M", person.getGender());
     }
 
     @Test
     void equals_WithSameObject_ShouldReturnTrue() {
         // Given
         UUID id = UUID.randomUUID();
-        Person person = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        Person person = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234",
+                "12345678901", "BRA", "AB1234567", "M");
 
         // When & Then
         assertEquals(person, person);
@@ -94,8 +120,10 @@ class PersonTest {
     void equals_WithEqualObject_ShouldReturnTrue() {
         // Given
         UUID id = UUID.randomUUID();
-        Person person1 = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
-        Person person2 = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        Person person1 = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234",
+                "12345678901", "BRA", "AB1234567", "M");
+        Person person2 = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234",
+                "12345678901", "BRA", "AB1234567", "M");
 
         // When & Then
         assertEquals(person1, person2);
@@ -105,8 +133,10 @@ class PersonTest {
     @Test
     void equals_WithDifferentObject_ShouldReturnFalse() {
         // Given
-        Person person1 = new Person(UUID.randomUUID(), "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
-        Person person2 = new Person(UUID.randomUUID(), "Jane Doe", "jane.doe@example.com", "456 Oak St", "555-5678");
+        Person person1 = new Person(UUID.randomUUID(), "John Doe", "john.doe@example.com", "123 Main St", "555-1234",
+                "12345678901", "BRA", "AB1234567", "M");
+        Person person2 = new Person(UUID.randomUUID(), "Jane Doe", "jane.doe@example.com", "456 Oak St", "555-5678",
+                "98765432109", "USA", "CD7654321", "F");
 
         // When & Then
         assertNotEquals(person1, person2);
@@ -117,7 +147,8 @@ class PersonTest {
     void toString_ShouldContainAllFields() {
         // Given
         UUID id = UUID.randomUUID();
-        Person person = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234");
+        Person person = new Person(id, "John Doe", "john.doe@example.com", "123 Main St", "555-1234",
+                "12345678901", "BRA", "AB1234567", "M");
 
         // When
         String toString = person.toString();
@@ -128,5 +159,9 @@ class PersonTest {
         assertTrue(toString.contains("email=john.doe@example.com"));
         assertTrue(toString.contains("address=123 Main St"));
         assertTrue(toString.contains("phoneNumber=555-1234"));
+        assertTrue(toString.contains("cpf=12345678901"));
+        assertTrue(toString.contains("nationality=BRA"));
+        assertTrue(toString.contains("passport=AB1234567"));
+        assertTrue(toString.contains("gender=M"));
     }
 }

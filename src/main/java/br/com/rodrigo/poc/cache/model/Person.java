@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,4 +50,21 @@ public class Person implements Serializable {
     
     @Column(name = "phone_number")
     private String phoneNumber;
+    
+    @Size(min = 11, max = 11, message = "CPF must have 11 digits")
+    @Pattern(regexp = "\\d{11}", message = "CPF must contain only numbers")
+    @Column(length = 11)
+    private String cpf;
+    
+    @NotBlank(message = "Nationality is required")
+    @Size(min = 3, max = 3, message = "Nationality code must have 3 characters")
+    @Column(length = 3, nullable = false)
+    private String nationality;
+    
+    @Column(length = 20)
+    private String passport;
+    
+    @Pattern(regexp = "[MF]", message = "Gender must be 'M' or 'F'")
+    @Column(length = 1)
+    private String gender;
 }

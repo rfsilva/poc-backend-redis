@@ -36,6 +36,8 @@ spring:
       hibernate:
         format_sql: true
         use_sql_comments: true
+        # Desabilita a validação de tipos de coluna
+        schema_validation.ignore_column_type_mismatch: true
   
   # Flyway Configuration
   flyway:

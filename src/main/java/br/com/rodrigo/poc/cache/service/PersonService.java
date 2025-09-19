@@ -224,6 +224,10 @@ public class PersonService {
         person.setEmail(personDTO.getEmail());
         person.setAddress(personDTO.getAddress());
         person.setPhoneNumber(personDTO.getPhoneNumber());
+        person.setCpf(personDTO.getCpf());
+        person.setNationality(personDTO.getNationality());
+        person.setPassport(personDTO.getPassport());
+        person.setGender(personDTO.getGender());
     }
     
     /**
@@ -239,6 +243,10 @@ public class PersonService {
                 .email(person.getEmail())
                 .address(person.getAddress())
                 .phoneNumber(person.getPhoneNumber())
+                .cpf(person.getCpf())
+                .nationality(person.getNationality())
+                .passport(person.getPassport())
+                .gender(person.getGender())
                 .build();
     }
     
@@ -255,6 +263,10 @@ public class PersonService {
                 .email(dto.getEmail())
                 .address(dto.getAddress())
                 .phoneNumber(dto.getPhoneNumber())
+                .cpf(dto.getCpf())
+                .nationality(dto.getNationality())
+                .passport(dto.getPassport())
+                .gender(dto.getGender())
                 .build();
     }
 }
