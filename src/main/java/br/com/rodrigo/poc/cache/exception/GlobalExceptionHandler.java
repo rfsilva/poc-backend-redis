@@ -47,6 +47,28 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Trata exceções de CPF inválido
+     * 
+     * @param ex Exceção lançada
+     * @param request Requisição web
+     * @return Resposta de erro com status 400
+     */
+    @ExceptionHandler(InvalidCpfException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleInvalidCpfException(
+            InvalidCpfException ex, WebRequest request) {
+        log.error("Invalid CPF: {}", ex.getMessage());
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDateTime.now(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    /**
      * Trata exceções de validação de argumentos
      * 
      * @param ex Exceção lançada

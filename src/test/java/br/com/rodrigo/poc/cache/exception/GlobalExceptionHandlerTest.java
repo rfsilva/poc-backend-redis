@@ -48,6 +48,23 @@ class GlobalExceptionHandlerTest {
         assertEquals("Resource not found", response.getBody().getMessage());
         assertEquals("test-request", response.getBody().getPath());
     }
+    
+    @Test
+    void handleInvalidCpfException_ShouldReturnBadRequestStatus() {
+        // Given
+        InvalidCpfException ex = new InvalidCpfException("Invalid CPF");
+        when(webRequest.getDescription(false)).thenReturn("test-request");
+
+        // When
+        ResponseEntity<GlobalExceptionHandler.ErrorResponse> response = exceptionHandler.handleInvalidCpfException(ex, webRequest);
+
+        // Then
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getStatus());
+        assertEquals("Invalid CPF", response.getBody().getMessage());
+        assertEquals("test-request", response.getBody().getPath());
+    }
 
     @Test
     void handleValidationExceptions_ShouldReturnBadRequestStatus() {

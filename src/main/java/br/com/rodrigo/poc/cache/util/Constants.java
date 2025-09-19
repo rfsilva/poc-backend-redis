@@ -33,6 +33,7 @@ public final class Constants {
         public static final String PERSON_NOT_FOUND = "Person not found with id: ";
         public static final String VALIDATION_ERROR = "Validation error";
         public static final String UNEXPECTED_ERROR = "An unexpected error occurred. Please contact support.";
+        public static final String INVALID_CPF = "Invalid CPF. Please provide a valid CPF number.";
     }
     
     /**

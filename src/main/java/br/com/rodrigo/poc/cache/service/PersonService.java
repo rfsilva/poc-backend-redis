@@ -1,11 +1,13 @@
 package br.com.rodrigo.poc.cache.service;
 
+import br.com.rodrigo.poc.cache.exception.InvalidCpfException;
 import br.com.rodrigo.poc.cache.exception.ResourceNotFoundException;
 import br.com.rodrigo.poc.cache.model.Person;
 import br.com.rodrigo.poc.cache.model.dto.PageResponse;
 import br.com.rodrigo.poc.cache.model.dto.PersonDTO;
 import br.com.rodrigo.poc.cache.repository.PersonRepository;
 import br.com.rodrigo.poc.cache.util.Constants;
+import br.com.rodrigo.poc.cache.util.CpfValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -153,13 +155,21 @@ public class PersonService {
     
     /**
      * Cria uma nova pessoa
+     * Valida o CPF antes de salvar
      * 
      * @param personDTO DTO com os dados da pessoa a ser criada
      * @return DTO da pessoa criada com ID gerado
+     * @throws InvalidCpfException se o CPF for inválido
      */
     public PersonDTO create(PersonDTO personDTO) {
         Objects.requireNonNull(personDTO, "PersonDTO cannot be null");
         log.info("Creating new person: {}", personDTO.getName());
+        
+        // Valida o CPF se estiver presente
+        if (personDTO.getCpf() != null && !personDTO.getCpf().isEmpty()) {
+            validateCpf(personDTO.getCpf());
+        }
+        
         Person person = convertToEntity(personDTO);
         Person savedPerson = personRepository.save(person);
         return convertToDTO(savedPerson);
@@ -167,19 +177,27 @@ public class PersonService {
     
     /**
      * Atualiza uma pessoa existente
+     * Valida o CPF antes de atualizar
      * Atualiza o cache com o novo valor
      * 
      * @param id ID da pessoa a ser atualizada
      * @param personDTO DTO com os novos dados
      * @return DTO da pessoa atualizada
      * @throws ResourceNotFoundException se a pessoa não for encontrada
+     * @throws InvalidCpfException se o CPF for inválido
      */
     @CachePut(value = Constants.Cache.PERSON_CACHE, key = "#id")
     public PersonDTO update(UUID id, PersonDTO personDTO) {
         Objects.requireNonNull(personDTO, "PersonDTO cannot be null");
         log.info("Updating person with id: {}", id);
+        
         Person existingPerson = personRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.ErrorMessages.PERSON_NOT_FOUND + id));
+        
+        // Valida o CPF se estiver presente
+        if (personDTO.getCpf() != null && !personDTO.getCpf().isEmpty()) {
+            validateCpf(personDTO.getCpf());
+        }
         
         updatePersonFields(existingPerson, personDTO);
         
@@ -211,6 +229,19 @@ public class PersonService {
     @CacheEvict(value = {Constants.Cache.PERSON_CACHE, Constants.Cache.ALL_PERSONS_CACHE}, allEntries = true)
     public void clearCache() {
         log.info("Clearing all person caches");
+    }
+    
+    /**
+     * Valida se o CPF é válido
+     * 
+     * @param cpf CPF a ser validado
+     * @throws InvalidCpfException se o CPF for inválido
+     */
+    private void validateCpf(String cpf) {
+        if (!CpfValidator.isValid(cpf)) {
+            log.error("Invalid CPF provided: {}", cpf);
+            throw new InvalidCpfException(Constants.ErrorMessages.INVALID_CPF);
+        }
     }
     
     /**
